@@ -1,12 +1,26 @@
 <script type= text/javascript>
     $(document).ready(function () {
+        ajax_error_message = "We are unable to save your change please refresh the page and try again";
+
+        function display_error(xhr, status, error){
+
+            if(xhr.status == 0){
+                $('#server-status').text(ajax_error_message);
+                $('#server-status').show();
+                alert(ajax_error_message);
+
+            }
+
+        } //end of function display_error
+
+
 
         $('select#teams').on('change', function() {
             new_page = "/teams/" + $(this).val() + "/alphas";
             window.location.replace(new_page);
         });
 
-        ajax_error_message = "We are unable to save your change please refresh the page and try again";
+
 
     <% unless @disabled.present? %>
         $('.checklist_checkbox').click(function(){
@@ -21,14 +35,7 @@
                 data:"checklist_id=" + id + "&checked=" + checked +  "&team_id=<%=@team.id%>&user_email=<%=current_user.email%>",
                 dataType:'script',
                 url: '/api/v1/progress/<%= @team.id %>/mark',
-                error: function(xhr, status, error){
-                    if(xhr.status == 0){
-                        $('#server-status').text(ajax_error_message);
-                        $('#server-status').show();
-                        alert(ajax_error_message);
-                    }
-
-                }
+                error:  display_error
             });
         });
         $('.alpha-notes').change(function () {
@@ -38,8 +45,13 @@
                 type: 'post',
                 data: "alpha_id=" + alpha_id + "&user_email=<%=current_user.email%>" + "&notes=" + text,
                 dataType: 'script',
-                url: '/api/v1/progress/<%= @team.id %>/save_notes'});
-            $('#alert-notes-' + alpha_id).slideDown("slow").delay(1000).slideUp("slow");
+                url: '/api/v1/progress/<%= @team.id %>/save_notes',
+                error:  display_error
+            });
+            if(xhr.status != 0){
+
+                $('#alert-notes-' + alpha_id).slideDown("slow").delay(1000).slideUp("slow");
+            }
         });
         $('.alpha-actions').change(function () {
             text = $(this).val();
@@ -48,7 +60,9 @@
                 type: 'post',
                 data: "alpha_id=" + alpha_id + "&user_email=<%=current_user.email%>" + "&actions=" + text,
                 dataType: 'script',
-                url: '/api/v1/progress/<%= @team.id %>/save_actions'});
+                url: '/api/v1/progress/<%= @team.id %>/save_actions',
+                error:  display_error
+            });
             $('#alert-actions-' + alpha_id).slideDown("slow").delay(1000).slideUp("slow");
 
         });
@@ -58,7 +72,9 @@
                 type:'post',
                 data:"action_id=" + id + "&team_id=<%=@team.id%>&user_email=<%=current_user.email%>",
                 dataType:'script',
-                url: '/api/v1/progress/<%= @team.id %>/action_done'});
+                url: '/api/v1/progress/<%= @team.id %>/action_done',
+                error:  display_error
+            });
             row = $(this).parents(".action-list-item");
             row.hide('fast', function(){ row.remove(); });
         });
@@ -68,7 +84,9 @@
                 type:'post',
                 data:"action_id=" + id + "&team_id=<%=@team.id%>&user_email=<%=current_user.email%>",
                 dataType:'script',
-                url: '/api/v1/progress/<%= @team.id %>/action_deleted'});
+                url: '/api/v1/progress/<%= @team.id %>/action_deleted',
+                error:  display_error
+            });
             row = $(this).parents(".action-list-item");
             row.hide('fast', function(){ row.remove(); });
         });
@@ -78,7 +96,9 @@
                 type:'post',
                 data:"team_id=<%=@team.id%>&user_email=<%=current_user.email%>",
                 dataType:'script',
-                url: '/api/v1/progress/<%= @team.id %>/email_summary'});
+                url: '/api/v1/progress/<%= @team.id %>/email_summary',
+                error:  display_error
+            });
             // $("#email-team-notes").prop('value', 'Email sent');
             $(this).text('Email sent')
         });
